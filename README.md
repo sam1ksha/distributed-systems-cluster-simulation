@@ -2,14 +2,6 @@
 
 This project implements a lightweight simulation of a Kubernetes-like cluster management system. It demonstrates key distributed computing concepts such as node management, pod scheduling, and fault tolerance.
 
-## Architecture
-
-The system consists of three main components:
-
-1. **API Server (Central Control Unit)**: Manages the overall cluster operations including node registration, pod scheduling, and health monitoring.
-2. **Nodes**: Simulated as Docker containers, each node hosts pods and periodically sends heartbeat signals to the API server.
-3. **Pods**: The smallest deployable units that are scheduled on nodes and require specific CPU resources.
-
 ## Features
 
 - **Node Management**: Add nodes to the cluster with specific CPU resources
@@ -24,77 +16,13 @@ The system consists of three main components:
 - Python 3.6+
 - Required Python packages (see requirements.txt)
 
-## Setup
-
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd distributed-systems-cluster-simulator
-   ```
-
-2. Run the setup script:
-   ```
-   chmod +x setup_and_run.sh
-   ./setup_and_run.sh
-   ```
-
-3. The API server and Redis database will start in Docker containers.
-
 ## Using the CLI
 
 The command-line interface provides several commands for interacting with the cluster:
 
-### Add a node to the cluster
-
-```
-python cli_client.py add-node <cpu_cores>
-```
-
-Example:
-```
-python cli_client.py add-node 4
-```
-
-### List all nodes in the cluster
-
-```
-python cli_client.py list-nodes
-```
-
-### Create a pod
-
-```
-python cli_client.py create-pod <name> <cpu_required> [--algorithm <algorithm>]
-```
-
-Example:
-```
-python cli_client.py create-pod web-server 2 --algorithm best-fit
-```
-
 Available algorithms: first-fit (default), best-fit, worst-fit
 
-### List all pods in the cluster
-
-```
-python cli_client.py list-pods
-```
-
-### Simulate a node failure
-
-```
-python cli_client.py fail-node <node_id>
-```
-
-## Using the Web Interface
-
-Start the web interface:
-
-```
-python web_interface.py
-```
-
-Then open your browser and navigate to http://localhost:8080
+Then open your browser and navigate to http://localhost:5000
 
 The web interface allows you to:
 - See an overview of cluster status

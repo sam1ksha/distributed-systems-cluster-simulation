@@ -1,0 +1,598 @@
+<!-- api_server/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Orchestration Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--dark);
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary);
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-healthy {
+            background-color: #d5f5e3;
+            color: #27ae60;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .resource-bar {
+            height: 12px;
+            background-color: #eee;
+            border-radius: 6px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .resource-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .refresh-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #777;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .pod-badge {
+            background-color: #f0f7ff;
+            color: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .list-all-btn {
+            margin-left: 8px;
+        }
+
+        .node-list-modal {
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .json-display {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cubes"></i> Container Orchestration Dashboard</h1>
+            <div>
+                <span id="current-time"></span>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Nodes</h2>
+                    <div>
+                        <button id="add-node-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Add Node</button>
+                        <button id="list-all-nodes-btn" class="btn btn-primary list-all-btn"><i class="fas fa-list"></i> List All</button>
+                        <i class="fas fa-sync refresh-icon" onclick="loadDashboard()"></i>
+                    </div>
+                </div>
+                <div id="nodes-container">
+                    <div class="empty-state">
+                        <i class="fas fa-server"></i>
+                        <p>No nodes available</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Pods</h2>
+                    <div>
+                        <button id="add-pod-btn" class="btn btn-success"><i class="fas fa-plus"></i> Add Pod</button>
+                        <i class="fas fa-sync refresh-icon" onclick="loadDashboard()"></i>
+                    </div>
+                </div>
+                <div id="pods-container">
+                    <div class="empty-state">
+                        <i class="fas fa-cube"></i>
+                        <p>No pods available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Node Modal -->
+        <div id="add-node-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add New Node</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="form-group">
+                    <label for="cpu-cores">CPU Cores:</label>
+                    <input type="number" id="cpu-cores" min="1" value="2">
+                </div>
+                <button id="submit-node" class="btn btn-primary">Add Node</button>
+            </div>
+        </div>
+        
+        <!-- Add Pod Modal -->
+        <div id="add-pod-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add New Pod</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="form-group">
+                    <label for="cpu-required">CPU Required:</label>
+                    <input type="number" id="cpu-required" min="1" value="1">
+                </div>
+                <button id="submit-pod" class="btn btn-success">Schedule Pod</button>
+            </div>
+        </div>
+
+        <!-- List All Nodes Modal -->
+        <div id="list-all-nodes-modal" class="modal">
+            <div class="modal-content node-list-modal">
+                <div class="modal-header">
+                    <h3>All Nodes Details</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div id="nodes-json" class="json-display"></div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Container Orchestration System &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Add event listeners for modals
+        document.getElementById('add-node-btn').addEventListener('click', () => showModal('add-node-modal'));
+        document.getElementById('add-pod-btn').addEventListener('click', () => showModal('add-pod-modal'));
+        document.getElementById('list-all-nodes-btn').addEventListener('click', () => {
+            fetch('/nodes')
+                .then(response => response.json())
+                .then(nodes => {
+                    document.getElementById('nodes-json').textContent = JSON.stringify(nodes, null, 2);
+                    showModal('list-all-nodes-modal');
+                });
+        });
+        
+        // Close modals when clicking on X
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', () => {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            });
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+        
+        // Add a new node
+        document.getElementById('submit-node').addEventListener('click', () => {
+            const cpuCores = parseInt(document.getElementById('cpu-cores').value);
+            fetch('/add_node', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cpu_cores: cpuCores })
+            })
+            .then(response => response.json())
+            .then(data => {
+                closeModal('add-node-modal');
+                loadDashboard();
+            });
+        });
+        
+        // Add a new pod
+        document.getElementById('submit-pod').addEventListener('click', () => {
+            const cpuRequired = parseInt(document.getElementById('cpu-required').value);
+            fetch('/add_pod', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cpu_required: cpuRequired })
+            })
+            .then(response => response.json())
+            .then(data => {
+                closeModal('add-pod-modal');
+                loadDashboard();
+                if (data.message === 'No suitable node available') {
+                    alert('No suitable node available for this pod!');
+                }
+            });
+        });
+        
+        // Remove pod
+        function removePod(podId) {
+            if (confirm('Are you sure you want to remove this pod?')) {
+                fetch(`/remove_pod/${podId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadDashboard();
+                });
+            }
+        }
+        
+        // Remove node
+        function removeNode(nodeId) {
+            if (confirm('Are you sure you want to remove this node?')) {
+                fetch(`/remove_node/${nodeId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadDashboard();
+                    if (data.message === 'Cannot remove node with active pods') {
+                        alert('Cannot remove node with active pods!');
+                    }
+                });
+            }
+        }
+        
+        // Load dashboard data
+        function loadDashboard() {
+            // Load nodes
+            fetch('/nodes')
+                .then(response => response.json())
+                .then(nodes => {
+                    const nodesContainer = document.getElementById('nodes-container');
+                    
+                    if (Object.keys(nodes).length === 0) {
+                        nodesContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-server"></i>
+                                <p>No nodes available</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let nodesHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Node ID</th>
+                                    <th>CPU</th>
+                                    <th>Status</th>
+                                    <th>Pods</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    for (const [nodeId, node] of Object.entries(nodes)) {
+                        const usedCpu = node.cpu_cores - node.available_cores;
+                        const cpuPercentage = (usedCpu / node.cpu_cores) * 100;
+                        
+                        nodesHtml += `
+                            <tr>
+                                <td>${nodeId.substring(0, 8)}...</td>
+                                <td>
+                                    ${usedCpu}/${node.cpu_cores} cores
+                                    <div class="resource-bar">
+                                        <div class="resource-bar-fill" style="width: ${cpuPercentage}%"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status status-healthy">
+                                        Healthy
+                                    </span>
+                                </td>
+                                <td>
+                                    ${node.pods.length} pods
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="removeNode('${nodeId}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    nodesHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    nodesContainer.innerHTML = nodesHtml;
+                });
+            
+            // Load pods
+            fetch('/pods')
+                .then(response => response.json())
+                .then(pods => {
+                    const podsContainer = document.getElementById('pods-container');
+                    
+                    if (Object.keys(pods).length === 0) {
+                        podsContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-cube"></i>
+                                <p>No pods available</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let podsHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pod ID</th>
+                                    <th>CPU</th>
+                                    <th>Node</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    for (const [podId, pod] of Object.entries(pods)) {
+                        podsHtml += `
+                            <tr>
+                                <td>${podId.substring(0, 8)}...</td>
+                                <td>${pod.cpu_required} cores</td>
+                                <td>${pod.node_id.substring(0, 8)}...</td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="removePod('${podId}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    podsHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    podsContainer.innerHTML = podsHtml;
+                });
+        }
+        
+        // Update time every second
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Initial load
+        loadDashboard();
+        
+        // Auto refresh every 10 seconds
+        setInterval(loadDashboard, 10000);
+    </script>
+</body>
+</html>

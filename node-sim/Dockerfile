@@ -1,6 +1,12 @@
 FROM python:3.9-slim
+
 WORKDIR /app
-# Copy only the node.py file from the node_sim directory
+
+# Install dependencies
+RUN pip install requests==2.25.0
+
+# Copy the node script
 COPY node.py .
-RUN pip install requests
-CMD ["python", "node.py", "default-node"]
+
+# Default command - will be overridden by docker run
+CMD ["python", "node.py"]

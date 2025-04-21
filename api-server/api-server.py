@@ -157,6 +157,7 @@ def remove_node(node_id):
     
     return jsonify({'message': 'Node not found'}), 404
 
+
 def monitor_health():
     while True:
         now = time.time()
